@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.411</version><!-- which version of Jenkins is this plugin built against? -->
+  </parent>
+
+  <artifactId>tepco-epuw</artifactId>
+  <name>TEPCO Electric Power Usage Widget</name>
+  <version>1.0</version>
+  <packaging>hpi</packaging>
+  <description>This plugin shows current TEPCO electric power usage and a graph of daily usage.</description>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/TEPCO+Electric+Power+Usage+Widget</url>
+
+  <developers>
+    <developer>
+      <id>future-azure</id>
+      <name>Yi Hu</name>
+      <email>future.azure@gmail.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:ssh://github.com/jenkinsci/tepco-epuw.git</connection>
+    <developerConnection>scm:git:ssh@github.com:jenkinsci/tepco-epuw.git</developerConnection>
+    <url>https://github.com/jenkinsci/tepco-epuw</url>
+  </scm>
+</project>

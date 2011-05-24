@@ -1,0 +1,189 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<l:pane width="3" title="${%tokyoElectricPowerUsage}">
+	<tr>
+		<td colspan="3" align="center" style="padding: 3px 0px;">
+			<table cellspacing="0" cellpadding="0" width="180px">
+				<tr id="gauge"></tr>
+			</table>
+		</td>
+	</tr>
+
+	<tr>
+		<td class="pane" align="right">${%usage}</td>
+		<td class="pane" align="center"><b id="usage">0</b>${%and}nbsp;${%tenThousandKW}</td>
+		<td class="pane" rowspan="2" align="center" valign="center" style="font-size:200%;" id="percentage"></td>
+	</tr>
+	<tr>
+		<td class="pane" align="right">${%capacity}</td>
+		<td class="pane" align="center"><b id="capacity">0</b>${%and}nbsp;${%tenThousandKW}</td>
+	</tr>
+	<tr>
+		<td class="pane" align="center" colspan="3" id="updatedTime"></td>
+	</tr>
+	
+	<tr>
+		<td colspan="3" align="center" valign="center" style="padding: 1px;">
+			<table cellspacing="0" cellpadding="0" height="105px" width="200px">
+        		<tr><td id="graph" style="position: absolute;padding: 0px;"></td></tr>
+    		</table>
+		</td>
+	</tr>
+
+    <script type="text/javascript">
+    	var current = ${it.current};
+    	var today = ${it.today};
+    	var yestoday = ${it.yestoday};
+    	var max = 4500;
+    	var min = 2000;
+
+        function getColor(percentage) {
+            var r = "00";
+            var g = "00";
+            if (percentage ${%lessThan} 50) {
+                r = (percentage * 2 * 255 / 100 | 0).toString(16);
+                if (r.length == 1) {
+                    r = "0" + r;
+                }
+                g = "ff";
+            } else {
+                r = "ff";
+                g = ((100 - percentage) * 2 * 255 / 100 | 0).toString(16);
+                if (g.length == 1) {
+                    g = "0" + g;
+                }
+            }
+
+            return "#" + r + g + "00";
+        }
+
+        function setCurrentUsage() {
+        	var total = 30;
+        	var percentage = current.usage * 100 / current.capacity | 0;
+			var colorCount = total * percentage / 100 | 0;
+			var grayCount = total - colorCount;
+
+            var txt = "";
+            var color;
+            for (i = 0; i ${%lessThan} colorCount; i++) {
+            	color = getColor(i * 100 / total);
+                txt += '${%lessThan}td style="padding: 0px;" width="6px"${%greaterThan}${%lessThan}div style="width: 5px; height: 10px; background-color: ' + color + ';"${%greaterThan}${%lessThan}/div${%greaterThan}${%lessThan}/td${%greaterThan}';
+            }
+            for (i = 0; i ${%lessThan} grayCount; i++) {
+                txt += '${%lessThan}td style="padding: 0px;" width="6px"${%greaterThan}${%lessThan}div style="width: 5px; height: 10px; background-color: #c0c0c0;"${%greaterThan}${%lessThan}/div${%greaterThan}${%lessThan}/td${%greaterThan}';
+            }
+            document.getElementById("gauge").innerHTML = txt;
+
+			if (current.usage_updated != "0000-00-00 00:00:00") {
+            	document.getElementById("usage").innerHTML = current.usage;
+        		document.getElementById("capacity").innerHTML = current.capacity;
+        		document.getElementById("percentage").innerHTML = percentage + "%";
+        		document.getElementById("updatedTime").innerHTML = utc2locale(current.usage_updated) + " ${%updated}";
+        	} else {
+        		document.getElementById("usage").innerHTML = "-";
+        		document.getElementById("capacity").innerHTML = "-";
+        		document.getElementById("percentage").innerHTML = "-";
+        		document.getElementById("updatedTime").innerHTML = "-";
+        	}
+        }
+
+        function showGraph() {
+            var txt = "";
+            var range = max - min;
+            var maxHeight = 60 * max / 4000 | 0;
+            var topHeight = 90;
+
+            txt += '${%lessThan}div style="position: absolute; left: 0px; top: ' + (topHeight - 5) + 'px; font-size: 8px"${%greaterThan}2,000${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; left: 0px; top: ' + (topHeight - 35) + 'px; font-size: 8px"${%greaterThan}3,000${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; left: 0px; top: ' + (topHeight - 65) + 'px; font-size: 8px"${%greaterThan}4,000${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; left: 0px; top: ' + (topHeight - 75) + 'px; font-size: 8px; width: 60px;"${%greaterThan}${%tenThousandKW}${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; width: 174px; height: 1px; background-color: #a0a0a0; left: 25px; top: ' + (topHeight - 60) + 'px;"${%greaterThan}${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; width: 174px; height: 1px; background-color: #a0a0a0; left: 25px; top: ' + (topHeight - 30) + 'px;"${%greaterThan}${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; width: 174px; height: 2px; background-color: #000000; left: 25px; top: ' + topHeight + 'px;"${%greaterThan}${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}div style="position: absolute; left: 190px; top: ' + (topHeight + 3) + 'px; font-size: 9px; width: 15px;"${%greaterThan}${%time}${%lessThan}/div${%greaterThan}';
+            txt += '${%lessThan}table id="usageLegend" cellspacing="0" cellpadding="0" style="position: absolute; left: 7px; top: 0px; width: 193px; display: ; padding: 0px;"${%greaterThan}${%lessThan}tr align="center"${%greaterThan}${%lessThan}td style="vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}div style="width: 12px; height: 5px; background-color: #88ff00;"${%greaterThan}${%lessThan}/div${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%usageToday}${%lessThan}/td${%greaterThan}${%lessThan}td style="vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}div style="width: 10px; height: 1px; background-color: #000000;"${%greaterThan}${%lessThan}/div${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%usageYestoday}${%lessThan}/td${%greaterThan}${%lessThan}td style="vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}div style="width: 8px; height: 2px; background-color: #ff0000;"${%greaterThan}${%lessThan}/div${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%forecastPeakUsage}${%lessThan}/td${%greaterThan}${%lessThan}/tr${%greaterThan}${%lessThan}/table${%greaterThan}';
+
+            var percentage, color, height;
+            for (i = 0; i ${%lessThan} 24; i++) {
+                if (i ${%lessThan} today.length) {
+                    percentage = (today[i].usage - min) * 100 / range | 0;
+                    color = getColor((today[i].usage - min) * 100 / (today[i].capacity - min) | 0);
+                    height = percentage * maxHeight / 100 | 0;
+                    txt += '${%lessThan}div  id="usage' + i + '" onMouseOut="hideDetail(' + i + ')" onMouseOver="showDetail(' + i + ')" style="position: absolute; top: ' + (topHeight - height) + 'px; left: ' + (27 + i * 7) + 'px; width: 5px; height: ' + height + 'px; background-color: ' + color + ';"${%greaterThan}${%lessThan}/div${%greaterThan}';
+                } else {
+                	if (i ${%lessThan} yestoday.length) {
+                		percentage = (yestoday[i].usage - min) * 100 / range | 0;
+                    	height = percentage * maxHeight / 100 | 0;
+                		txt += '${%lessThan}div  id="usage' + i + '" onMouseOut="hideDetail(' + i + ')" onMouseOver="showDetail(' + i + ')" style="position: absolute; top: ' + (topHeight - height) + 'px; left: ' + (27 + i * 7) + 'px; width: 5px; height: ' + height + 'px;"${%greaterThan}${%lessThan}/div${%greaterThan}';
+                	}
+                }
+
+                if (i ${%lessThan} yestoday.length) {
+                    percentage = (yestoday[i].usage - min) * 100 / range | 0;
+                    height = percentage * maxHeight / 100 | 0;
+                    txt += '${%lessThan}div style="position: absolute; top: ' + (topHeight - height) + 'px; left: ' + (32 + i * 7) + 'px; width: 1px; height: ' + height + 'px; background-color: #101010;"${%greaterThan}${%lessThan}/div${%greaterThan}';
+                }
+
+                if (i % 3 == 0) {
+                    txt += '${%lessThan}div style="position: absolute; top: ' + (topHeight + 3) + 'px; left: ' + (i ${%greaterThan} 10 ? (23 + i * 7) : (26 + i * 7)) + 'px; font-size: 9px;"${%greaterThan}' + i + '${%lessThan}/div${%greaterThan}';
+                }
+            }
+            if (today.length ${%lessThan} current.forecast_peak_period) {
+	            height = (current.forecast_peak_usage - min) * maxHeight / range | 0;
+    	        txt += '${%lessThan}div style="position: absolute; top: ' + (topHeight - height) + 'px; left: ' + (26 + current.forecast_peak_period * 7) + 'px; width: 7px; height: 2px; background-color: #ff0000"${%greaterThan}${%lessThan}/div${%greaterThan}';
+            }
+            
+            txt += '${%lessThan}table id="usageDetail" cellspacing="0" cellpadding="0" style="position: absolute; left: 0px; top: 1px; width: 200px; display: none; padding: 0px"${%greaterThan}${%lessThan}tr align="center"${%greaterThan}${%lessThan}td id="detailTime" style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%today}:${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}font id="detailTodayUsage" color="blue"${%greaterThan}${%lessThan}/font${%greaterThan}/${%lessThan}font id="detailTodayPercentage" color="blue"${%greaterThan}${%lessThan}/font${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%yestoday}:${%lessThan}/td${%greaterThan}${%lessThan}td style="font-size: 8px; vertical-align: middle; padding: 0px;"${%greaterThan}${%lessThan}font id="detailYestodayUsage" color="blue"${%greaterThan}${%lessThan}/font${%greaterThan}/${%lessThan}font id="detailYestodayPercentage" color="blue"${%greaterThan}${%lessThan}/font${%greaterThan}${%lessThan}/td${%greaterThan}${%lessThan}/tr${%greaterThan}${%lessThan}/table${%greaterThan}';
+
+            document.getElementById("graph").innerHTML = txt;
+        }
+        function showDetail(i) {
+        	document.getElementById("detailTime").innerHTML = i + ":00";
+        	if (i ${%lessThan} today.length) {
+            	document.getElementById("usage" + i).style.backgroundColor = "#3377ff";
+            	document.getElementById("detailTodayUsage").innerHTML = today[i].usage;
+            	document.getElementById("detailTodayPercentage").innerHTML = (today[i].usage * 100 / today[i].capacity | 0) + "%";
+            } else {
+            	document.getElementById("detailTodayUsage").innerHTML = "-";
+            	document.getElementById("detailTodayPercentage").innerHTML = "-";
+            }
+            if (i ${%lessThan} yestoday.length) {
+            	document.getElementById("detailYestodayUsage").innerHTML = yestoday[i].usage;
+            	document.getElementById("detailYestodayPercentage").innerHTML = (yestoday[i].usage * 100 / yestoday[i].capacity | 0) + "%";
+            } else {
+            	document.getElementById("detailYestodayUsage").innerHTML = "-";
+            	document.getElementById("detailYestodayPercentage").innerHTML = "-";
+            }
+            document.getElementById("usageLegend").style.display = "none";
+            document.getElementById("usageDetail").style.display = "";
+        }
+        function hideDetail(i) {
+        	if (i ${%lessThan} today.length) {
+            	var color = getColor((today[i].usage - min) * 100 / (today[i].capacity - min) | 0);
+            	document.getElementById("usage" + i).style.backgroundColor = color;
+            }
+            document.getElementById("usageLegend").style.display = "";
+            document.getElementById("usageDetail").style.display = "none";
+        }
+        function utc2locale(utcDateString) {
+        	var d = new Date(utcDateString.replace(/-/g, "/"));
+            d.setTime(d.getTime() - d.getTimezoneOffset() * 60 * 1000);
+            var hours = d.getHours();
+            if (hours ${%lessThan} 10) {
+                hours = "0" + hours;
+            }
+            var minutes = d.getMinutes();
+            if (minutes ${%lessThan} 10) {
+                minutes = "0" + minutes;
+            }
+            var seconds = d.getSeconds();
+            if (seconds ${%lessThan} 10) {
+                seconds = "0" + seconds;
+            }
+        	return d.toLocaleDateString() + " " + hours + ":" + minutes + ":" + seconds;
+        }
+
+        setCurrentUsage();
+        showGraph();
+	</script>
+</l:pane>
+</j:jelly>

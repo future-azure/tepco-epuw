@@ -1,0 +1,6 @@
+<!--
+  This view is used to render the installed plugins page.
+-->
+<div>
+  This plugin shows current TEPCO electric power usage and a graph of daily usage.
+</div>
